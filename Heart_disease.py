@@ -1,13 +1,9 @@
 import streamlit as st
-import pickle
+import joblib
 import numpy as np
 import pandas as pd
-import sklearn
 
-import sklearn
-print(sklearn.__version__)
-
-
+# IMPORTANT: custom function MUST exist before loading model
 def safe_log_transform(x):
     return np.log1p(np.clip(x, a_min=0, a_max=None))
 
@@ -20,34 +16,30 @@ st.set_page_config(
 st.title("Heart Failure Prediction App")
 st.write("Enter patient details to predict risk of death event.")
 
-# LOAD MODEL
-# @st.cache_resource
-# def load_model():
-#     with open("dt_pipeline.pkl", "rb") as f:
-#         model = pickle.load(f)
-#     return model
+# LOAD MODEL (joblib only)
+@st.cache_resource
+def load_model():
+    return joblib.load("dt_pipeline.pkl")
 
-with open("dt_pipeline.pkl", "rb") as f:
-    model = pickle.load(f)
+model = load_model()
 
 # USER INPUTS
 st.subheader("Patient Information")
 
-age = st.number_input("Age", min_value=1, max_value=120, value=60)
+age = st.number_input("Age", 1, 120, 60)
 anaemia = st.selectbox("Anaemia", [0, 1])
-creatinine_phosphokinase = st.number_input("Creatinine Phosphokinase", min_value=0)
+creatinine_phosphokinase = st.number_input("Creatinine Phosphokinase", 0)
 diabetes = st.selectbox("Diabetes", [0, 1])
-ejection_fraction = st.number_input("Ejection Fraction", min_value=1, max_value=100, value=35)
+ejection_fraction = st.number_input("Ejection Fraction", 1, 100, 35)
 high_blood_pressure = st.selectbox("High Blood Pressure", [0, 1])
-platelets = st.number_input("Platelets", min_value=0)
-serum_creatinine = st.number_input("Serum Creatinine", min_value=0.0, format="%.2f")
-serum_sodium = st.number_input("Serum Sodium", min_value=0)
+platelets = st.number_input("Platelets", 0)
+serum_creatinine = st.number_input("Serum Creatinine", 0.0, format="%.2f")
+serum_sodium = st.number_input("Serum Sodium", 0)
 sex = st.selectbox("Sex (0 = Female, 1 = Male)", [0, 1])
 smoking = st.selectbox("Smoking", [0, 1])
-time = st.number_input("Follow-up Period (days)", min_value=1)
+time = st.number_input("Follow-up Period (days)", 1)
 
-
-# CREATE INPUT DATAFRAME
+# INPUT DATAFRAME
 input_data = pd.DataFrame([{
     "age": age,
     "anaemia": anaemia,
@@ -62,7 +54,6 @@ input_data = pd.DataFrame([{
     "smoking": smoking,
     "time": time
 }])
-
 
 # PREDICTION
 if st.button("Predict"):
